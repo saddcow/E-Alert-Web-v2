@@ -1,4 +1,4 @@
-import 'package:e_alert/auth/login_page.dart';
+import 'package:e_alert/auth/auth_service.dart';
 import 'package:e_alert/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const LoginPage(),
+      home: AuthService().handleAuth(),
     );
   }
 }

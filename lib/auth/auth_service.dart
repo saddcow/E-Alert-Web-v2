@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_alert/auth/login_page.dart';
+import 'package:e_alert/pages/ADMIN/adminMainPage.dart';
+import 'package:e_alert/pages/CDRRMO/cdrrmoMainPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -13,109 +15,77 @@ class AuthService {
     return StreamBuilder<User?>(
       stream: _auth.authStateChanges(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.active) {
-          User? user = snapshot.data;
-          if (user != null) {
-            return checkUserType(context, user);
-          } else {
-            return LoginPage();
-          }
-        } else {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-      },
-    );
-  }
-
-  Widget checkUserType(BuildContext context, User user) {
-    return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('User').doc(user.uid).get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          if (snapshot.hasError) {
-            return Scaffold(
-              body: Center(
-                child: Text('Error: ${snapshot.error}'),
-              ),
-            );
-          }
-
-          if (snapshot.hasData) {
-            var data = snapshot.data;
-            String userType = data!['User_Type'];
-
-            if (userType == 'ADMIN') {
-              // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AdminHome()));
-              
-            } else if (userType == 'CDRRMO') {
-              // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const CdrrmoHome()));
-              
-            } else if (userType == 'COMCEN') {
-              // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const ComcenHome()));
-              
-            } else if (userType == 'PUBLIC') {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Error'),
-                      content: const Text('You are not authorized to access this page.'),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () async {
-                            await AuthService().signOut(context);
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => LoginPage()),
-                            );
-                          },
-                          child: const Text('OK'),
-                        ),
-                      ],
-                    );
-                  },
+        if (snapshot.hasData) {
+          return FutureBuilder<Widget>(
+            future: checkUserType(context, snapshot.data!),
+            builder: (context, userTypeSnapshot) {
+              if (userTypeSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
                 );
-              });
-            }
-          }
+              } else if (userTypeSnapshot.hasError) {
+                return Scaffold(
+                  body: Center(child: Text('Error: ${userTypeSnapshot.error}')),
+                );
+              } else {
+                return userTypeSnapshot.data!;
+              }
+            },
+          );
+        } else {
+          return const LoginPage();
         }
-        return const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
       },
     );
   }
 
-  //sign out
-  Future<void> signOut(BuildContext context) async {
+  Future<Widget> checkUserType(BuildContext context, User user) async {
     try {
-      await _auth.signOut();
-      print('Signed Out');
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Signed Out'),
-          duration: Duration(seconds: 3),
-        ),
+      DocumentSnapshot doc = await FirebaseFirestore.instance.collection('User').doc(user.uid).get();
+      String userType = doc['User_Type'];
+      if (userType == 'ADMIN') {
+        return const AdminMainPage();
+      } else if (userType == 'CDRRMO') {
+        return const CDRRMOMainPage();
+      } else if (userType == 'COMCEN') {
+        // return ComcenHome();
+      } else if (userType == 'PUBLIC') {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: const Text('You are not authorized to access this app.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                await AuthService().signout();
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginPage()));
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      }
+    } catch (e) {
+      print('Error checking user type: $e');
+      return Scaffold(
+        body: Center(child: Text('Error: $e')),
       );
+    }
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  // sign out
+  Future<void> signout() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      print('Signed out');
     } catch (err) {
-      print(err.toString());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(err.toString()),
-          duration: Duration(seconds: 3),
-        ),
-      );
+      print('Error signing out: $err');
     }
   }
 
-  //sign in
+  // sign in
   Future<void> signIn(String email, String password, BuildContext context) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);

@@ -1,4 +1,4 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:e_alert/auth/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
 
@@ -11,30 +11,10 @@ class LoginFormWidget extends StatefulWidget {
 
 class _LoginFormWidgetState extends State<LoginFormWidget> {
   final TextEditingController emailCon = TextEditingController(),
-    passwordCon = TextEditingController();
-  
+      passwordCon = TextEditingController();
+
   final formKey = GlobalKey<FormState>();
 
-  Future<void> login() async {
-    if (formKey.currentState!.validate()) {
-      try {
-        UserCredential value = await FirebaseAuth.instance
-            .signInWithEmailAndPassword(email: emailCon.text, password: passwordCon.text);
-
-        if (value.user != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Successfully logged in")),
-          );
-          Navigator.pop(context);
-        }
-      } on FirebaseAuthException catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error: ${e.message}")),
-        );
-      }
-    }
-  }
-  
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -51,12 +31,16 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               }
               return null;
             },
-            onChanged: (_) => formKey.currentState!.validate(),
+            onChanged: (_) {
+              if (formKey.currentState != null) {
+                formKey.currentState!.validate();
+              }
+            },
             keyboardType: TextInputType.emailAddress,
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: Colors.black
+              color: Colors.black,
             ),
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
@@ -64,7 +48,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               labelText: 'Email',
               labelStyle: TextStyle(color: Colors.black, fontSize: 12),
               floatingLabelStyle: TextStyle(color: Colors.black, fontSize: 16),
-              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12), 
+              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             ),
           ),
           const SizedBox(height: 12),
@@ -79,12 +63,18 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
               }
               return null;
             },
-            onChanged: (_) => formKey.currentState!.validate(),
-            onFieldSubmitted: (_) => login(),
+            onChanged: (_) {
+              if (formKey.currentState != null) {
+                formKey.currentState!.validate();
+              }
+            },
+            onFieldSubmitted: (_) => AuthService().signIn(
+              emailCon.text, passwordCon.text, context
+            ),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: Colors.black
+              color: Colors.black,
             ),
             keyboardType: TextInputType.visiblePassword,
             obscureText: true,
@@ -103,7 +93,7 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
             customBorder: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
-            onTap: login,
+            onTap: () => AuthService().signIn(emailCon.text, passwordCon.text, context),
             child: Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(vertical: 8),
@@ -117,11 +107,11 @@ class _LoginFormWidgetState extends State<LoginFormWidget> {
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
-                  fontWeight: FontWeight.w500
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
