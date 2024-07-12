@@ -1,9 +1,6 @@
 import 'package:e_alert/auth/auth_service.dart';
-import 'package:e_alert/auth/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
-import 'package:flutter/widgets.dart';
-
 class AdminMainPage extends StatefulWidget {
   const AdminMainPage({super.key});
 

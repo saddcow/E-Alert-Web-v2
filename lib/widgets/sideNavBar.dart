@@ -1,6 +1,8 @@
 import 'package:e_alert/auth/auth_service.dart';
+import 'package:e_alert/pages/CDRRMO/CDRRMOmonitoring_page.dart';
 import 'package:easy_sidemenu/easy_sidemenu.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SideNavBar extends StatefulWidget {
   const SideNavBar({super.key});
@@ -12,20 +14,36 @@ class SideNavBar extends StatefulWidget {
 class _SideNavBarState extends State<SideNavBar> {
   PageController pageController = PageController();
   SideMenuController sideMenu = SideMenuController();
+  String userType = '';
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
+    super.initState();
     sideMenu.addListener((index) {
       pageController.jumpToPage(index);
     });
-    super.initState();
+    _fetchUserType();
+  }
+
+  Future<void> _fetchUserType() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? fetchedUserType = await _authService.getUserType(user.uid);
+      setState(() {
+        userType = fetchedUserType ?? 'UNKNOWN';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Welcome, get current user!", style: TextStyle(color: Colors.white),),
+        title: Text(
+          "Welcome, $userType!",
+          style: const TextStyle(color: Colors.white),
+        ),
         centerTitle: false,
         backgroundColor: Colors.lightBlue,
       ),
@@ -43,7 +61,8 @@ class _SideNavBarState extends State<SideNavBar> {
               selectedColor: Colors.lightBlue,
               selectedTitleTextStyle: const TextStyle(color: Colors.white),
               selectedIconColor: Colors.white,
-              selectedTitleTextStyleExpandable: const TextStyle(color: Colors.lightBlue),
+              selectedTitleTextStyleExpandable:
+                  const TextStyle(color: Colors.lightBlue),
               selectedIconColorExpandable: Colors.lightBlue,
               arrowOpen: Colors.lightBlue,
             ),
@@ -71,7 +90,6 @@ class _SideNavBarState extends State<SideNavBar> {
                   sideMenu.changePage(index);
                 },
                 icon: const Icon(Icons.home),
-                
                 tooltipContent: "Monitoring",
               ),
               SideMenuItem(
@@ -118,13 +136,15 @@ class _SideNavBarState extends State<SideNavBar> {
               SideMenuItem(
                 title: 'Exit',
                 onTap: (index, _) async {
-                  await AuthService().signout();
+                  await _authService.signout();
                 },
                 icon: const Icon(Icons.exit_to_app),
               ),
             ],
           ),
-          const VerticalDivider(width: 0,),
+          const VerticalDivider(
+            width: 0,
+          ),
           Expanded(
             child: PageView(
               controller: pageController,
@@ -143,14 +163,50 @@ class _SideNavBarState extends State<SideNavBar> {
   }
 
   Widget _buildPage(String title) {
-    return Container(
-      color: Colors.white,
-      child: Center(
-        child: Text(
-          title,
-          style: const TextStyle(fontSize: 35),
+    Object content = _getContentForPage(title);
+    if (content is String) {
+      return Container(
+        color: Colors.white,
+        child: Center(
+          child: Text(
+            content,
+            style: const TextStyle(fontSize: 35),
+          ),
         ),
-      ),
-    );
+      );
+    } else if (content is Widget) {
+      return content;
+    } else {
+      return Container(
+        color: Colors.white,
+        child: const Center(
+          child: Text(
+            'Default Content',
+            style: TextStyle(fontSize: 35),
+          ),
+        ),
+      );
+    }
+  }
+
+  Object _getContentForPage(String page) {
+    switch (userType) {
+      case 'COMCEN':
+        if (page == 'Monitoring') return 'COMCEN Monitoring Content';
+        if (page == 'Manage') return 'COMCEN Manage Content';
+        if (page == 'Today') return 'COMCEN Today Content';
+        if (page == 'Archived') return 'COMCEN Archived Content';
+        break;
+      case 'CDRRMO':
+        if (page == 'Monitoring') return const CDRRMOmonitoringPage();
+        if (page == 'Manage') return 'CDRRMO Manage Content';
+        if (page == 'Today') return 'CDRRMO Today Content';
+        if (page == 'Archived') return 'CDRRMO Archived Content';
+        break;
+      // Add more user types if needed
+      default:
+        return 'Default Content';
+    }
+    return 'Default Content';
   }
 }

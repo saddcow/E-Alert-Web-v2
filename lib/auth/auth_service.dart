@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_alert/auth/login_page.dart';
 import 'package:e_alert/pages/ADMIN/adminMainPage.dart';
 import 'package:e_alert/pages/CDRRMO/cdrrmoMainPage.dart';
+import 'package:e_alert/pages/COMCEN/comcenMainPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -9,6 +10,16 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
+
+  Future<String?> getUserType(String uid) async {
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance.collection('User').doc(uid).get();
+      return doc['User_Type'];
+    } catch (e) {
+      print('Error getting user type: $e');
+      return null;
+    }
+  }
 
   // Handle Authentication
   Widget handleAuth() {
@@ -48,7 +59,7 @@ class AuthService {
       } else if (userType == 'CDRRMO') {
         return const CDRRMOMainPage();
       } else if (userType == 'COMCEN') {
-        // return ComcenHome();
+        return const COMCENmainPage();
       } else if (userType == 'PUBLIC') {
         return AlertDialog(
           title: const Text('Error'),
