@@ -177,14 +177,8 @@ class _SideNavBarState extends State<SideNavBar> {
     } else if (content is Widget) {
       return content;
     } else {
-      return Container(
-        color: Colors.white,
-        child: const Center(
-          child: Text(
-            'Default Content',
-            style: TextStyle(fontSize: 35),
-          ),
-        ),
+      return const Center(
+        child: CircularProgressIndicator(),
       );
     }
   }
@@ -205,7 +199,7 @@ class _SideNavBarState extends State<SideNavBar> {
         break;
       // Add more user types if needed
       default:
-        return 'Default Content';
+        return 'Loading...';
     }
     return 'Default Content';
   }

@@ -3,7 +3,6 @@ import 'package:e_alert/models/weather_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 
 class CurrentWeatherApi {
   static Future<Map<String, dynamic>> fetchCurrentWeather(
@@ -67,53 +66,57 @@ class _CurrentWeatherCardState extends State<CurrentWeatherCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (currentWeather != null)
-          Padding(
-            padding: EdgeInsets.all(10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  currentWeather!.day,
-                  style: GoogleFonts.roboto(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                  ),
+    return SizedBox(
+      child: Card(
+        child: Column(
+          children: [
+            if (currentWeather != null)
+              Padding(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      currentWeather!.day,
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                      ),
+                    ),
+                    Text(
+                      '${currentWeather!.month} ${currentWeather!.date}',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Image.network(currentWeather!.iconUrl),
+                    Text(
+                      '${currentWeather!.temperature}°C',
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.w300,
+                        fontSize: 30,
+                      ),
+                    ),
+                    Text(
+                      currentWeather!.weatherDescription.toUpperCase(),
+                      style: GoogleFonts.roboto(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  '${currentWeather!.month} ${currentWeather!.date}',
-                  style: GoogleFonts.roboto(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Image.network(currentWeather!.iconUrl),
-                Text(
-                  '${currentWeather!.temperature}°C',
-                  style: GoogleFonts.roboto(
-                    fontWeight: FontWeight.w300,
-                    fontSize: 30,
-                  ),
-                ),
-                Text(
-                  currentWeather!.weatherDescription.toUpperCase(),
-                  style: GoogleFonts.roboto(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 20,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        if (currentWeather == null)
-          const Text(
-            'Loading current weather...',
-            style: TextStyle(fontSize: 16),
-          ),
-      ],
+              ),
+            if (currentWeather == null)
+              const Text(
+                'Loading current weather...',
+                style: TextStyle(fontSize: 16),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
